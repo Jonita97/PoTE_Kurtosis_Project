@@ -1,0 +1,76 @@
+# This document explains why this runs on GitHub over Circle
+# https://www.notion.so/kurtosistech/Why-we-have-our-Linter-as-a-Github-Action-572b44c4a9b445009515b7b41d5f74ff
+# we use `skip-pkg-cache:true` as we run into https://github.com/golangci/golangci-lint-action/issues/244 if we don't
+
+name: Golang Lint
+
+# We only want one run of this on a branch
+# if you push another commit the previous run should cancel
+concurrency:
+  group: "go-linter-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  merge_group:
+
+env:
+  GOLINT_VERSION: v2.0.1
+
+jobs:
+  check-if-code-change:
+    runs-on: ubuntu-latest
+    outputs:
+      change: ${{ steps.check.outputs.change }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          go-version: '1.23'
+          fetch-depth: 0
+      - run: |
+          if git --no-pager diff --exit-code origin/main...HEAD -- . ':!docs' ':!*.md'; then
+            echo "::set-output name=change::false"
+          else
+            echo "::set-output name=change::true"
+          fi
+        id: check
+  golangci:
+    needs: check-if-code-change
+    name: golang-lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        directory:
+          - container-engine-lib
+          - contexts-config-store
+          - grpc-file-transfer/golang
+          - metrics-library/golang
+          - name_generator
+          - api/golang
+          - core/server
+          - core/launcher
+          - engine/server
+          - engine/launcher
+          - internal_testsuites/golang
+          - cli/cli
+    steps:
+      - uses: actions/setup-go@v5
+        if: ${{ needs.check-if-code-change.outputs.change == 'true' }}
+        with:
+          go-version: '1.23'
+      - uses: actions/checkout@v4
+        if: ${{ needs.check-if-code-change.outputs.change == 'true' }}
+      # Generate versions
+      - run: scripts/generate-kurtosis-version.sh
+        if: ${{ needs.check-if-code-change.outputs.change == 'true' }}
+      - name: lint ${{ matrix.directory }}
+        if: ${{ needs.check-if-code-change.outputs.change == 'true' }}
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: ${{ env.GOLINT_VERSION }}
+          working-directory: ${{ matrix.directory }}
+          args: --timeout=3m
+          skip-pkg-cache: true

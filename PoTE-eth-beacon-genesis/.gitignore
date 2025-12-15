@@ -1,0 +1,7 @@
+.vscode
+.DS_Store
+bin
+temp
+log-*
+tmp-*
+coverage.out
