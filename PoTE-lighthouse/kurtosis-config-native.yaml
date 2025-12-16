@@ -19,6 +19,6 @@ network_params:
 ethereum_genesis_generator_params:
   image: docker.io/giobbe/pote-ethereum-genesis-generator-amd64
   extra_env:
-    TEE_VENDOR: "0"  # 0=SEV, 1=TDX, 2=CCA
+    TEE_VENDOR: 0  # 0=SEV, 1=TDX, 2=CCA (no quotes!)
 additional_services:
 - dora
