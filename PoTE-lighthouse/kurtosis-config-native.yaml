@@ -16,5 +16,9 @@ network_params:
   gas_limit: 30000000
   seconds_per_slot: 12
   additional_preloaded_contracts: "{\n  \"0x1000000000000000000000000000000000000001\": {\n    \"balance\": \"100000000000000000000000\",\n    \"comment\": \"Test account 1 (100K ETH)\"\n  },\n  \"0x2000000000000000000000000000000000000002\": {\n    \"balance\": \"100000000000000000000000\",\n    \"comment\": \"Test account 2 (100K ETH)\"\n  },\n  \"0x3000000000000000000000000000000000000003\": {\n    \"balance\": \"50000000000000000000000\",\n    \"comment\": \"Test account 3 (50K ETH)\"\n  }\n}\n"
+ethereum_genesis_generator_params:
+  image: docker.io/giobbe/pote-ethereum-genesis-generator-amd64
+  extra_env:
+    TEE_VENDOR: "0"  # 0=SEV, 1=TDX, 2=CCA
 additional_services:
 - dora
