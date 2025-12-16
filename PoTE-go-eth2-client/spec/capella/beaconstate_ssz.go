@@ -17,7 +17,8 @@ func (b *BeaconState) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the BeaconState object to a target array
 func (b *BeaconState) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(2736653)
+	// TEE-extended header: offset increased by 8193 bytes (8305 - 112)
+	offset := int(2744846) // Was 2736653 for 112-byte header, now 2736653 + 8193 = 2744846
 
 	// Field (0) 'GenesisTime'
 	dst = ssz.MarshalUint64(dst, b.GenesisTime)
@@ -317,7 +318,8 @@ func (b *BeaconState) UnmarshalSSZ(buf []byte) error {
 	if b.LatestBlockHeader == nil {
 		b.LatestBlockHeader = new(phase0.BeaconBlockHeader)
 	}
-	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:176]); err != nil {
+	// TEE-extended header: 64 + 8305 = 8369 (was 64 + 112 = 176)
+	if err = b.LatestBlockHeader.UnmarshalSSZ(buf[64:8369]); err != nil {
 		return err
 	}
 
